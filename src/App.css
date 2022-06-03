@@ -1,5 +1,9 @@
+body{
+  height: 100vh;
+  overflow: hidden;
+}
 .App {
-  max-width: 860px;
+  max-width: 400px;
   margin: 40px auto;
 }
 button {
