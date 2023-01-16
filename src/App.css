@@ -11,6 +11,7 @@ button{
   outline: none;
   padding: 10px;
   border: 1px solid black;
+  cursor: pointer;
 }
 .newGame {
   background: none;
