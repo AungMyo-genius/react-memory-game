@@ -1,6 +1,8 @@
 import { useState,useEffect } from 'react'
 import './App.css'
 import SingleCard from './components/SingleCard'
+import Confetti from 'react-confetti';
+
 
 const cardImages = [
   {'src': '/img/helmet-1.png'},
@@ -14,9 +16,11 @@ const cardImages = [
 function App() {
   const [cards,setCards] = useState([])
   const [turns,setTurns] = useState(0)
+  const [win ,setWin] = useState(false)
   const [choiceOne, setChoiceOne] = useState(null)
   const [choiceTwo, setChoiceTwo] = useState(null)
   const [disable, setDisable] = useState(false)
+  const [display, setDisplay] = useState({})
 
   // shuffle card
   const shuffledCards = () => {
@@ -24,7 +28,7 @@ function App() {
     .sort( () => Math.random() - 0.5)
     .map( card => ({...card,id:Math.random(),matched:false}) )
 
-
+    setWin(false)
     setChoiceOne(null)
     setChoiceTwo(null)
     setCards(() => shuffledCards)
@@ -36,10 +40,32 @@ function App() {
   const handleChoice = card => choiceOne ? setChoiceTwo(card) : setChoiceOne(card)
 
   //start a game automatically
-  useEffect( ()=> shuffledCards(), [])
+  useEffect( ()=> {
+    shuffledCards()
+    window.addEventListener('resize', () => {
+      setDisplay({
+        'width':window.innerWidth,
+        'height':window.innerHeight
+      })
+    })
+
+    return () => {
+      window.removeEventListener('resize', () => {
+        setDisplay({
+          'width':window.innerWidth,
+          'height':window.innerHeight
+        })
+      })
+    }
+  }, [])
 
   // compare choice
   useEffect( ()=> {
+    // Check Win status
+    if(cards.length){
+      setWin( cards.every( data => {return data.matched === true}) )
+    }
+    
     if(choiceOne && choiceTwo) {
       setDisable(true)
       if(choiceOne.src === choiceTwo.src) {
@@ -55,7 +81,8 @@ function App() {
         setTimeout( ()=> restTurn() , 1000)
       }
     }
-  }, [choiceOne,choiceTwo]);
+
+  }, [choiceOne,choiceTwo,cards]);
 
   // console.log(cards)
 
@@ -71,7 +98,7 @@ function App() {
   return (
     <div className="App">
       <h3>Magic Match</h3>
-      <button onClick={shuffledCards}>New Game</button>
+      <button className='newGame' onClick={shuffledCards}>New Game</button>
       <div className="card-grid">
         {cards.map( card => {
           return (
@@ -86,6 +113,21 @@ function App() {
         })}
       </div>
       <p>Turns: {turns}</p>
+      {win && 
+        (
+          <div className='modal'>
+              <Confetti
+                width={display.width}
+                height={display.height}
+              />
+              <div className='modal-content'>
+                <button className='close' onClick={shuffledCards}>&times;</button>
+                <p>Win with {turns} turns</p>
+                <button className='playAgain' onClick={shuffledCards}>Play Again</button>
+              </div>
+          </div>
+        )
+      }
     </div>
   );
 }
